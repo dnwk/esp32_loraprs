@@ -1,7 +1,8 @@
 #include <SparkFun_u-blox_GNSS_Arduino_Library.h>
 #include <u-blox_config_keys.h>
 #include <u-blox_structs.h>
-
+#include <Wire.h>
+#include "ACROBOTIC_SSD1306.h"
 #include <arduino-timer.h>
 #include "WiFi.h"
 #include "loraprs_service.h"
@@ -85,7 +86,10 @@ auto watchdogLedTimer = timer_create_default();
 void setup() {
   pinMode(BUILTIN_LED, OUTPUT);
   digitalWrite(BUILTIN_LED, 1);
-
+  Wire.begin();
+  oled.init();                      // Initialze SSD1306 OLED display
+  oled.clearDisplay();   
+  
   Serial.begin(SERIAL_BAUD_RATE);
   while (!Serial);
   
@@ -95,10 +99,15 @@ void setup() {
   loraPrsService.setup(config);
   //init GPS
   Serial.println("initGPS");
+  oled.setTextXY(1,0);              // Set cursor position, start of line 0
+  oled.putString("initGPS");
   Serial1.begin(GPS_BAUD_RATE, SERIAL_8N1, GPS_RX_PIN, GPS_TX_PIN);
   delay(1500);
   if (myGNSS.begin(Serial1) == false) {
-     Serial.println(F("Ublox GNSS not detected at default I2C address. Please check wiring."));
+      Serial.println(F("Ublox GNSS not detected at default I2C address. Please check wiring."));
+      oled.clearDisplay(); 
+      oled.setTextXY(1,0);              // Set cursor position, start of line 0
+      oled.putString("Ublox GNSS not detected at default I2C address.");
   }
   watchdogLedTimer.every(LED_TOGGLE_PERIOD, toggleWatchdogLed);
 }
@@ -109,7 +118,9 @@ void loop() {
 }
 
 bool toggleWatchdogLed(void *) {
+  String arr[2];
   digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+  setGPSInfo(arr);
   return true;
 }
 //functions to convert decimal to dms borrowed from https://github.com/lora-aprs/LoRa_APRS_Tracker
@@ -140,19 +151,31 @@ String create_long_aprs(double lng) {
 void setGPSInfo(String arr[]){
       myGNSS.checkUblox(); //See if new data is available. Process bytes as they come in.
       //Get GPS Info
-      if (nmea.isValid() == true) {        
+      if (nmea.isValid() == true) {
         arr[0]=create_lat_aprs((double)nmea.getLatitude()/1000000);
         arr[1]=create_long_aprs((double)nmea.getLongitude()/1000000);
-        Serial.print("Latitude (deg): ");
-        Serial.println(arr[0]);
-        Serial.print("Longitude (deg): ");
-       Serial.println(arr[1]);
+        //oled.clearDisplay();
+        oled.setTextXY(2,0);              
+        oled.putString(arr[0]);
+        oled.setTextXY(3,0);              
+        oled.putString(arr[1]);
+        oled.setTextXY(4,0);              
+        oled.putString("UTC Time");
+        oled.setTextXY(5,0);           
+        oled.putString(String(nmea.getYear())+"-"+String(nmea.getMonth())+"-"+String(nmea.getDay()));
+        oled.setTextXY(6,0); 
+        oled.putString(String(nmea.getHour())+":"+String(nmea.getMinute())+":"+String(nmea.getSecond()));
+        oled.setTextXY(1,0); 
+        oled.putString("Sat: " + String(nmea.getNumSatellites())+"     ");
     } else {
         Serial.print("No Fix - ");
         Serial.print("Num. satellites: ");
         Serial.println(nmea.getNumSatellites());
         arr[0]="0";
         arr[1]="0";
+        oled.clearDisplay();
+        oled.setTextXY(1,0);            
+        oled.putString("No GPS Fix");
     }
 }
 

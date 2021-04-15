@@ -28,16 +28,16 @@
 #define CFG_LORA_PWR          100
 #define CFG_LORA_ENABLE_CRC   true  // set to false for speech data
 
-#define CFG_BT_NAME           "loraprs"
+#define CFG_BT_NAME           "loraprs-client"
 
-#define CFG_APRS_LOGIN        "NOCALL-10"
+#define CFG_APRS_LOGIN        "N7DMR-7"
 #define CFG_APRS_PASS         "12345"
 #define CFG_APRS_FILTER	      "r/35.60/139.80/25"
 #define CFG_APRS_RAW_BKN      ""  //set RAW BKN to empty string to utilize GPS
 #define CFG_APRS_SYMBOL_FIRST "\\"
 #define CFG_APRS_SYMBOL_SECOND "Y"
 #define CFG_APRS_COMMENTS     " LoRA 433.775MHz/BW125/SF12/CR7/0x34"
-#define CFG_APRS_BEACONMINUTES 2  // in minutes
+#define CFG_APRS_BEACONMINUTES 4  // in minutes
 #define CFG_WIFI_SSID         "<ssid>"
 #define CFG_WIFI_KEY          "<key>"
 
